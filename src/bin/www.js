@@ -63,13 +63,9 @@ function onListening() {
   const addr = server.address();
   const bind = typeof addr === "string" ? `pipe ${addr}` : `port ${addr.port}`;
 
-  console.log(
-    `${"The server started listining on port".yellow} http://${addr.address}:${
-      addr.port
-    }`.blue
-  );
+  console.log(`${`The server started listining on`.yellow} ${`${bind}`.green}`);
 
-  logger.log(`the server started listining on ${bind}`, "info");
+  logger.log(`The server started listining on ${bind}`, "info");
 }
 
 module.exports = {

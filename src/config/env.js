@@ -3,7 +3,6 @@ require("dotenv").config();
 let config = {
   app: {
     port: process.env.PORT || 3000,
-    host: process.env.HOST || "localhost",
     env: process.env.NODE_ENV || "development",
   },
 };
@@ -11,6 +10,7 @@ let config = {
 switch (process.env.NODE_ENV) {
   case "development":
     config = {
+      ...config,
       db: {
         username: process.env.DB_USER_NAME,
         password: process.env.DB_PASSWORD,
@@ -23,6 +23,7 @@ switch (process.env.NODE_ENV) {
     break;
   case "test":
     config = {
+      ...config,
       db: {
         username: process.env.CI_DB_USER_NAME,
         password: process.env.CI_DB_PASSWORD,
@@ -35,6 +36,7 @@ switch (process.env.NODE_ENV) {
     break;
   case "production":
     config = {
+      ...config,
       db: {
         username: process.env.PROD_DB_USER_NAME,
         password: process.env.PROD_DB_PASSWORD,
@@ -47,6 +49,7 @@ switch (process.env.NODE_ENV) {
     break;
   default:
     config = {
+      ...config,
       db: {
         username: process.env.DB_USER_NAME,
         password: process.env.DB_PASSWORD,

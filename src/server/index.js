@@ -8,6 +8,7 @@ const Logger = require("../utils/logger.js");
 const logger = new Logger();
 const app = express();
 const pathFile = logger.getLabel(__filename);
+const router = require("../routes/index");
 
 /**
  * Middleware
@@ -28,6 +29,8 @@ process.on("SIGINT", () => {
 //   logger.log(logString, "info");
 //   next();
 // });
+
+router.apiRoutes(app);
 
 app.use((req, res, next) => {
   logger.log(
