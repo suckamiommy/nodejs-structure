@@ -10,6 +10,7 @@ module.exports = {
       },
       roleName: {
         type: Sequelize.STRING(20),
+        unique: true,
       },
       createdAt: {
         allowNull: false,

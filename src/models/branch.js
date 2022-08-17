@@ -1,26 +1,28 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
+  class Branch extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsToMany(models.Role, {
-        through: "UsersRoles",
-        foreignKey: "userId",
-      });
-      this.hasMany(models.Branch, {
+      this.belongsTo(models.User, {
         foreignKey: {
           name: "userId",
           allowNull: false,
         },
       });
+      this.hasMany(models.WashingMachine, {
+        foreignKey: {
+          name: "branchId",
+          allowNull: false,
+        },
+      });
     }
   }
-  User.init(
+  Branch.init(
     {
       id: {
         type: DataTypes.BIGINT,
@@ -28,15 +30,18 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      username: { type: DataTypes.STRING, allowNull: false, unique: true },
-      password: { type: DataTypes.STRING, allowNull: false },
-      email: { type: DataTypes.STRING, allowNull: false, unique: true },
+      userId: DataTypes.BIGINT,
+      branchCode: { type: DataTypes.STRING(10), allowNull: false },
+      branchName: { type: DataTypes.STRING(20), allowNull: false },
+      address: { type: DataTypes.TEXT, allowNull: false },
+      latitude: { type: DataTypes.DECIMAL(8, 6) },
+      longitude: { type: DataTypes.DECIMAL(9, 6) },
     },
     {
       sequelize,
       paranoid: true,
-      modelName: "User",
+      modelName: "Branch",
     }
   );
-  return User;
+  return Branch;
 };
