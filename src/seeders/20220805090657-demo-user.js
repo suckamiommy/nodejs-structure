@@ -1,14 +1,18 @@
 "use strict";
+const bcrypt = require("bcrypt");
+const config = require("../config/index");
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    const hashedPwd = bcrypt.hashSync("adminadmin", config.auth.saltRounds);
+
     // Insert demo users
     await queryInterface.bulkInsert(
       "Users",
       [
         {
           username: "admin",
-          password: "admin",
+          password: hashedPwd,
           email: "admin@admin.com",
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -51,13 +55,9 @@ module.exports = {
     ]);
 
     // Insert relational Users has Roles
-    const users = await queryInterface.sequelize.query(
-      `SELECT id from "Users";`
-    );
+    const users = await queryInterface.sequelize.query(`SELECT id from "Users";`);
 
-    const roles = await queryInterface.sequelize.query(
-      `SELECT id from "Roles";`
-    );
+    const roles = await queryInterface.sequelize.query(`SELECT id from "Roles";`);
 
     const userRows = users[0];
     const roleRows = roles[0];
@@ -76,9 +76,7 @@ module.exports = {
     // Insert relational Roles has Permissions
     let arrRolesHasPermissions = [];
 
-    const permissions = await queryInterface.sequelize.query(
-      `SELECT id from "Permissions";`
-    );
+    const permissions = await queryInterface.sequelize.query(`SELECT id from "Permissions";`);
 
     const permissionRows = permissions[0];
 
@@ -89,11 +87,7 @@ module.exports = {
       });
     });
 
-    await queryInterface.bulkInsert(
-      "RolesPermissions",
-      arrRolesHasPermissions,
-      {}
-    );
+    await queryInterface.bulkInsert("RolesPermissions", arrRolesHasPermissions, {});
   },
 
   async down(queryInterface, Sequelize) {

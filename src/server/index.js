@@ -9,12 +9,16 @@ const logger = new Logger();
 const app = express();
 const pathFile = logger.getLabel(__filename);
 const router = require("../routes/index");
+const helmet = require("helmet");
 
 /**
  * Middleware
  */
 app.use(bodyParser.json());
 app.use(cors());
+app.use(helmet());
+
+process.env.TZ = "Asia/Bangkok";
 
 process.on("SIGINT", () => {
   logger.log("stopping the server", "info");
@@ -33,10 +37,7 @@ process.on("SIGINT", () => {
 router.apiRoutes(app);
 
 app.use((req, res, next) => {
-  logger.log(
-    `[${pathFile}] the url you are trying to reach is not hosted on our server`,
-    "error"
-  );
+  logger.log(`[${pathFile}] the url you are trying to reach is not hosted on our server`, "error");
   const err = new Error("Not Found");
   err.status = 404;
   res.status(err.status).json({

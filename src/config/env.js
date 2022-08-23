@@ -8,7 +8,7 @@ let config = {
   auth: {
     access_token_secret: process.env.ACCESS_TOKEN_SECRET,
     access_token_expire: process.env.ACCESS_TOKEN_EXPIRE || "1h",
-    saltRounds: process.env.TOKEN_SALT || 10,
+    saltRounds: parseInt(process.env.TOKEN_SALT) || 10,
     refresh_token_secret: process.env.REFRESH_TOKEN_SECRET,
     refresh_token_expire: process.env.REFRESH_TOKEN_EXRIRE || "2d",
   },

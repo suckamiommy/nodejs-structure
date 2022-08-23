@@ -1,7 +1,7 @@
-const showRoute = require("./api/show");
+const authRoute = require("./api/authRoute");
 
 const apiRoutes = (app) => {
-  app.use("/api/show", showRoute);
+  app.use("/api/auth", authRoute);
 };
 
 module.exports = {
