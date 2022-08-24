@@ -16,7 +16,10 @@ const handler = new Handler(logger, pathFile);
 const status = require("../utils/status");
 
 // required model
-const { User, Role, Permission } = require("../models");
+const { User } = require("../models");
+
+// required utils
+const { findUserRelation } = require("../utils/getUserRelation");
 
 // initial messages validator
 const messages = {
@@ -79,17 +82,19 @@ const Login = async (req, res) => {
 
     // everything is ok, then generate token
     const userRelation = await findUserRelation(res, username);
+    const payload = _.omit(userRelation, ["id"]);
 
-    const accessToken = jwt.sign({ UserInfo: userRelation }, config.auth.access_token_secret, { expiresIn: config.auth.access_token_expire });
+    const accessToken = jwt.sign({ UserInfo: payload }, config.auth.access_token_secret, { expiresIn: config.auth.access_token_expire });
     const refreshToken = jwt.sign({ username: userRelation.username }, config.auth.refresh_token_secret, { expiresIn: config.auth.refresh_token_expire });
 
     // store refresh token
+    await User.update({ refreshToken }, { where: { id: userRelation.id } });
 
     // response
     res.cookie("jwt", refreshToken, { httpOnly: true, sameSite: "None", secure: true, maxAge: 24 * 60 * 60 * 1000 });
-    return handler.success(res, status.Success, "")({ accessToken });
+    return handler.success(res, status.Success, "LOGIN_SUCCESS")({ accessToken });
   } catch (error) {
-    return handler.error(res, status.ServerError, "", error);
+    return handler.error(res, status.ServerError, "CATCH_LOGIN", error);
   }
 };
 
@@ -130,55 +135,36 @@ const Register = async (req, res) => {
 
     return handler.success(res, status.Success, "USER_CREATED")({ username: createdUser.username, email: createdUser.email });
   } catch (error) {
-    return handler.error(res, status.ServerError, "", error);
+    return handler.error(res, status.ServerError, "CATCH_REGISTER", error);
   }
 };
 
-const findUserRelation = async (res, username) => {
+const LogOut = async (req, res) => {
   try {
+    const cookies = req.cookies;
+    if (!cookies?.jwt) return handler.error(res, status.Unauthorized, "DONT_HAVE_TOKEN");
+    const refreshToken = cookies.jwt;
+
+    // is refreshToken in db?
     const options = {
-      where: { username },
-      attributes: ["username", "email"],
-      include: [
-        {
-          attributes: ["roleName"],
-          model: Role,
-          through: {
-            attributes: [],
-          },
-          include: [
-            {
-              attributes: ["permissionName"],
-              model: Permission,
-              through: {
-                attributes: [],
-              },
-            },
-          ],
-        },
-      ],
+      where: { refreshToken },
     };
+    const foundUser = await User.findOne(options);
+    if (!foundUser) return handler.error(res, status.Forbidden, "USER_NOTFOUND");
 
-    const user = await User.findAll(options);
+    // remove token from database
+    await User.update({ refreshToken: null }, { where: { id: foundUser.id } });
 
-    const roles = user.map((value) => pluck(value.Roles, "roleName"));
-
-    const permissions = user.map((value) => value.Roles.map((value) => pluck(value.Permissions, "permissionName")));
-
-    const filterUser = {
-      username: user[0].username,
-      email: user[0].email,
-      roles: _.flattenDepth(roles),
-      permissions: _.flattenDepth(permissions, 2),
-    };
-
-    return filterUser;
+    // clear cookies
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+    return handler.success(res, status.Success, "LOGOUT_SUCCESS")({});
   } catch (error) {
-    return handler.error(res, status.ServerError, "ERROR_WHILE_GETUSER", error);
+    return handler.error(res, status.ServerError, "CATCH_LOGOUT", error);
   }
 };
 
 module.exports = {
   Login,
   Register,
+  LogOut,
 };

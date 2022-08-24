@@ -10,6 +10,7 @@ const app = express();
 const pathFile = logger.getLabel(__filename);
 const router = require("../routes/index");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 
 /**
  * Middleware
@@ -17,6 +18,7 @@ const helmet = require("helmet");
 app.use(bodyParser.json());
 app.use(cors());
 app.use(helmet());
+app.use(cookieParser());
 
 process.env.TZ = "Asia/Bangkok";
 
